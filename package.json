@@ -19,5 +19,12 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "prisma": "^6.2.0"
+  },
+  "prisma": {
+    "schema": "./packages/prisma/schema.prisma"
+  }
+
 }
