@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String          @id @default(uuid())
+  username          String          @unique
+  email             String          @unique
+  password          String?
+  name              String
+  age               Int?
+  signInType        String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  rooms             RoomMember[]
+  adminOfRooms      RoomAdmin[]
+  friends           FriendModel[]   @relation("friendRelation")
+  friendOf          FriendModel[]   @relation("userRelation")
+  sentMessages      Messages[]      @relation("senderRelation")
+  receivedMessages  Messages[]      @relation("receiverRelation")
+}
+
+model Room {
+  id                String          @id @default(uuid())
+  name              String?
+  members           RoomMember[]
+  admins            RoomAdmin[]
+  messages          Messages[]
+  createdAt         DateTime        @default(now())
+}
+
+model Messages {
+  id                String          @id @default(uuid())
+  senderId          String
+  sender            User            @relation("senderRelation", fields: [senderId], references: [id])
+  receiverId        String?
+  receiver          User?           @relation("receiverRelation", fields: [receiverId], references: [id])
+  roomId            String?
+  room              Room?           @relation(fields: [roomId], references: [id])
+  content           String
+  createdAt         DateTime        @default(now())
+}
+
+model FriendModel {
+  userId            String
+  friendId          String
+  user              User            @relation("userRelation", fields: [userId], references: [id])
+  friend            User            @relation("friendRelation", fields: [friendId], references: [id])
+  closeFriend       Boolean         @default(false)
+  blocked           Boolean         @default(false)
+  restricted        Boolean         @default(false)
+  @@id([userId, friendId])
+}
+
+model RoomMember {
+  userId            String
+  roomId            String
+  user              User            @relation(fields: [userId], references: [id])
+  room              Room            @relation(fields: [roomId], references: [id])
+  createdAt         DateTime        @default(now())
+  @@id([userId, roomId])
+}
+
+model RoomAdmin {
+  userId            String
+  roomId            String
+  user              User            @relation(fields: [userId], references: [id])
+  room              Room            @relation(fields: [roomId], references: [id])
+  createdAt         DateTime        @default(now())
+  @@id([userId, roomId])
+}
